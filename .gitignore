@@ -1,0 +1,12 @@
+build/
+work/
+outputs/
+bin/
+obj/
+*.rdg
+*.settings
+*.user
+*.old
+.vs/
+RDCMan*.exe
+!dist/Plugin.RDCManTheme.dll
