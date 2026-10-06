@@ -8,6 +8,8 @@ Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Conn
 
 *Vom Anwender bereitgestellter RDCMan-Screenshot, für die Veröffentlichung durch gezieltes Ersetzen der Beschriftungen anonymisiert: Ordner- und Servernamen wurden durch Beispielnamen ersetzt; persönliche Namen und die IP-Adresse wurden entfernt.*
 
+![Theme-Auswahl im Menü Darstellung](docs/images/theme-menu.png)
+
 ## Installation
 
 1. Eine originale RDCMan **3.12** oder **3.21** verwenden. [Offizieller Microsoft-Download](https://learn.microsoft.com/en-us/sysinternals/downloads/rdcman).
