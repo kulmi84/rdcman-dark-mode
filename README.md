@@ -4,9 +4,9 @@ Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Conn
 
 **Hell · Dunkel · Windows-Einstellung** – direkt im Menü **Darstellung** umschalten. Die Windows-Einstellung folgt der Farbeinstellung für Apps.
 
-![Dark Mode im isolierten WinForms-Test](docs/images/dark.png)
+![RDCMan Dark Mode – anonymisierter Screenshot](docs/images/rdcman-dark-anonymized.png)
 
-*Das Bild zeigt den isolierten Theme-Test, kein echtes RDCMan-Fenster und keine RDP-Sitzung.*
+*Vom Anwender bereitgestellter RDCMan-Screenshot, mit KI für die Veröffentlichung anonymisiert: Ordner- und Servernamen wurden durch Beispielnamen ersetzt; persönliche Namen und die IP-Adresse wurden entfernt.*
 
 ## Installation
 
