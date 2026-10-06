@@ -6,7 +6,7 @@ Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Conn
 
 ![RDCMan Dark Mode – anonymisierter Screenshot](docs/images/rdcman-dark-anonymized.png)
 
-*Vom Anwender bereitgestellter RDCMan-Screenshot, mit KI für die Veröffentlichung anonymisiert: Ordner- und Servernamen wurden durch Beispielnamen ersetzt; persönliche Namen und die IP-Adresse wurden entfernt.*
+*Vom Anwender bereitgestellter RDCMan-Screenshot, für die Veröffentlichung durch gezieltes Ersetzen der Beschriftungen anonymisiert: Ordner- und Servernamen wurden durch Beispielnamen ersetzt; persönliche Namen und die IP-Adresse wurden entfernt.*
 
 ## Installation
 
