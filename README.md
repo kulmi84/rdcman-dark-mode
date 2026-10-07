@@ -1,10 +1,10 @@
-# RDCMan Dark Mode
+# RDCMan Dark Mode – Remotedesktop Verbindungs-Manager
 
 ![RDCMan Dark Mode – Hauptfenster und Serverbaum](docs/images/rdcman-dark-overview.png)
 
 ![RDCMan Dark Mode – Serverübersicht](docs/images/rdcman-dark-server-tiles.png)
 
-Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Connection Manager (RDCMan)**. Die Original-EXE bleibt unverändert und behält ihre Signatur.
+Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Connection Manager (RDCMan)**, auf Deutsch **Remotedesktop Verbindungs-Manager** (auch Remotedesktop-Verbindungsmanager). Die Original-EXE bleibt unverändert und behält ihre Signatur.
 
 **Hell · Dunkel · Windows-Einstellung** – direkt im Menü **Darstellung** umschalten. Die Windows-Einstellung folgt der Farbeinstellung für Apps.
 
