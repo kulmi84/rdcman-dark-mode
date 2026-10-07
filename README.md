@@ -1,8 +1,8 @@
-# RDCMan Dark Theme
+# RDCMan Dark Mode
 
-![RDCMan Dark Theme – Hauptfenster und Serverbaum](docs/images/rdcman-dark-overview.png)
+![RDCMan Dark Mode – Hauptfenster und Serverbaum](docs/images/rdcman-dark-overview.png)
 
-![RDCMan Dark Theme – Serverübersicht](docs/images/rdcman-dark-server-tiles.png)
+![RDCMan Dark Mode – Serverübersicht](docs/images/rdcman-dark-server-tiles.png)
 
 Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Connection Manager (RDCMan)**. Die Original-EXE bleibt unverändert und behält ihre Signatur.
 
@@ -13,7 +13,7 @@ Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Conn
 ## Installation
 
 1. Eine originale RDCMan **3.12** verwenden. v0.2.0 ist für 3.12 geprüft; der bisherige Prüfstand für 3.21 bezieht sich auf v0.1.0. [Offizieller Microsoft-Download](https://learn.microsoft.com/en-us/sysinternals/downloads/rdcman).
-2. [v0.2.0-ZIP herunterladen](https://github.com/kulmi84/rdcman-dark-theme/releases/tag/v0.2.0), entpacken und `Plugin.RDCManTheme.dll` direkt neben `RDCMan.exe` ablegen.
+2. [v0.2.0-ZIP herunterladen](https://github.com/kulmi84/rdcman-dark-mode/releases/tag/v0.2.0), entpacken und `Plugin.RDCManTheme.dll` direkt neben `RDCMan.exe` ablegen.
 3. RDCMan starten und im Menü **Darstellung** den gewünschten Modus wählen.
 
 Beim ersten Start ist Dunkel ausgewählt. Die Auswahl wird über RDCMans vorhandene globale Plugin-Einstellungen gespeichert. Für weitere Rechner EXE und Plugin-DLL gemeinsam kopieren. Keine zusätzliche Theme-DLL und kein zusätzlicher Runtime-Installer sind nötig.
