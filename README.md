@@ -1,23 +1,19 @@
 # RDCMan Dark Theme
 
+![RDCMan Dark Theme – Hauptfenster und Serverbaum](docs/images/rdcman-dark-overview.png)
+
+![RDCMan Dark Theme – Serverübersicht](docs/images/rdcman-dark-server-tiles.png)
+
 Ein separates Dark-Mode-Plugin für Microsoft Sysinternals **Remote Desktop Connection Manager (RDCMan)**. Die Original-EXE bleibt unverändert und behält ihre Signatur.
 
 **Hell · Dunkel · Windows-Einstellung** – direkt im Menü **Darstellung** umschalten. Die Windows-Einstellung folgt der Farbeinstellung für Apps.
-
-![RDCMan Dark Mode – anonymisierter Screenshot](docs/images/rdcman-dark-screenshot.png)
-
-*Vom Anwender bereitgestellter RDCMan-Screenshot, für die Veröffentlichung durch gezieltes Ersetzen der Beschriftungen anonymisiert: Ordner- und Servernamen wurden durch Beispielnamen ersetzt; persönliche Namen und die IP-Adresse wurden entfernt.*
-
-![Server-Einstellungen mit dunklen Scrollbalken](docs/images/server-properties-dark.png)
-
-![Theme-Auswahl im Menü Darstellung](docs/images/theme-selection-dark.png)
 
 **Neu in v0.2.0:** flackerfreier Aufbau der RDCMan-Einstellungsdialoge (in 3.12 bestätigt), dunkle Scrollbalken, graue Registerkarten-/Textfeldrahmen und Ordnersymbole im KeeTheme-Stil.
 
 ## Installation
 
 1. Eine originale RDCMan **3.12** verwenden. v0.2.0 ist für 3.12 geprüft; der bisherige Prüfstand für 3.21 bezieht sich auf v0.1.0. [Offizieller Microsoft-Download](https://learn.microsoft.com/en-us/sysinternals/downloads/rdcman).
-2. [v0.2.0-ZIP herunterladen](https://github.com/kulmi84/rdcman-dark-theme/releases/tag/v0.2.0), entpacken und `Plugin.RDCManTheme.dll` und direkt neben `RDCMan.exe` ablegen.
+2. [v0.2.0-ZIP herunterladen](https://github.com/kulmi84/rdcman-dark-theme/releases/tag/v0.2.0), entpacken und `Plugin.RDCManTheme.dll` direkt neben `RDCMan.exe` ablegen.
 3. RDCMan starten und im Menü **Darstellung** den gewünschten Modus wählen.
 
 Beim ersten Start ist Dunkel ausgewählt. Die Auswahl wird über RDCMans vorhandene globale Plugin-Einstellungen gespeichert. Für weitere Rechner EXE und Plugin-DLL gemeinsam kopieren. Keine zusätzliche Theme-DLL und kein zusätzlicher Runtime-Installer sind nötig.
@@ -39,6 +35,12 @@ Die Plugin-DLL ist unsigniert. SHA-256 der ausgelieferten v0.2.0-DLL:
 - RDP-/AxHost-Controls und ihre Unterbäume sind ausgeschlossen.
 
 Palette: Hintergrund `#1E1E1E`, Panels `#252526`, Menüs `#2D2D30`, Text `#F1F1F1`, inaktiver Text `#BEBEBE`.
+
+## Einstellungen und Theme-Auswahl
+
+![Server-Einstellungen mit dunklen Scrollbalken](docs/images/server-properties-dark.png)
+
+![Theme-Auswahl im Menü Darstellung](docs/images/theme-selection-dark.png)
 
 ## Kompatibilität und Prüfstand
 
