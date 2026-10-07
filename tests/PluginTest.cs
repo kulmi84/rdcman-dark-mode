@@ -17,6 +17,11 @@ public class Context : IPluginContext {
  public IServerTree Tree{get{return null;}}
 }
 public sealed class FakeAxHost : AxHost {public FakeAxHost():base("00000000-0000-0000-0000-000000000000") {}}
+public sealed class ConfirmationForm : Form {
+ readonly Button _acceptButton=new Button{Text="Add"};
+ public Button Confirm {get{return _acceptButton;}}
+ public ConfirmationForm(){Controls.Add(_acceptButton);ShowInTaskbar=false;StartPosition=FormStartPosition.Manual;Location=new Point(-20000,-20000);}
+}
 namespace RdcMan {
  // This synthetic class only simulates RDCMan's focus-driven color resets.
  public class ServerTree : TreeView {public void SimulateLegacyPalette(){BackColor=Color.White;ForeColor=Color.Black;}}
@@ -115,6 +120,23 @@ public static class PluginTest {
      var openingButton=new Button{Text="OK",Location=new Point(10,200)};actual.Controls.Add(openingButton);openingButton.BringToFront();actual.ResumeLayout();bool shown=false;
      actual.Shown+=(s,e)=>{shown=true;Assert(actual.BackColor==Theme.Background && actualTabs.TabPages[0].Controls[0].BackColor==Theme.Panel,"Actual RDCMan TabbedSettingsDialog dark after its ShownCallback");Assert(actual.Opacity==0,"Actual RDCMan dialog hidden during Shown construction");actual.BeginInvoke(new Action(()=>actual.BeginInvoke(new Action(()=>{Assert(actual.Opacity==1,"Actual RDCMan dialog revealed after Shown callbacks");Image(actual,"actual-rdcman-dialog.png");actual.Close();}))));};
      actual.ShowDialog(form);Assert(shown,"Actual RDCMan dialog exercised without Main or RDP connections");
+    }
+    using(var validating=new Form{ShowInTaskbar=false,Location=new Point(-20000,-20000),StartPosition=FormStartPosition.Manual}){
+     var edit=new TextBox{Text="Keep validation input"};validating.Controls.Add(edit);validating.Show();Application.DoEvents();
+     var batch=typeof(ThemePlugin).GetMethod("BatchConfirmation",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+     batch.Invoke(plugin,new object[]{validating});Assert(validating.Opacity==0,"Validation redraws are hidden from the compositor");edit.Text="Corrected input";Application.DoEvents();
+     Assert(validating.Visible && validating.Opacity==1 && edit.Enabled && edit.Text=="Corrected input","Validation keeps dialog visible and editable after drawing batch");
+     batch.Invoke(plugin,new object[]{validating});validating.Close();Application.DoEvents();Assert(!validating.Visible,"Closing dialog during confirmation batch does not reopen it");
+    }
+    using(var confirmation=new ConfirmationForm()){
+     confirmation.Show();Application.DoEvents();
+     var batches=(System.Collections.Generic.HashSet<Form>)typeof(ThemePlugin).GetField("confirmingDialogs",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).GetValue(plugin);
+     var click=Message.Create(confirmation.Confirm.Handle,0x202,IntPtr.Zero,IntPtr.Zero);
+     Assert(!plugin.PreFilterMessage(ref click) && batches.Contains(confirmation),"Mouse release starts confirmation batch without BN_CLICKED and remains deliverable");
+     Application.DoEvents();Assert(!batches.Contains(confirmation),"Mouse confirmation batch is released");
+     var enter=Message.Create(confirmation.Confirm.Handle,0x100,new IntPtr((int)Keys.Enter),IntPtr.Zero);
+     Assert(!plugin.PreFilterMessage(ref enter) && batches.Contains(confirmation),"Enter starts confirmation batch without suppressing input");
+     confirmation.Close();Application.DoEvents();Assert(!confirmation.Visible && !batches.Contains(confirmation),"Keyboard confirmation cleanup does not reopen dialog");
     }
     plugin.Shutdown();Assert(form.BackColor==originalBack,"Shutdown restores original colors");Assert(!form.MainMenuStrip.Items.Cast<ToolStripItem>().Any(i=>i.Text=="Darstellung"),"Shutdown removes own menu");
     File.WriteAllText(Path.Combine(root,"plugin-test-result.txt"),"PASS: MEF DirectoryCatalog Plugin.*.dll discovery and IPlugin export; plugin lifecycle; dark/light/system selection; original palette reset compensation; late controls and dialogs; dynamic submenus; AxHost exclusion; original colors, inherited values, renderer, FlatStyle, DrawMode and OwnerDraw restored; repeated toggles; setting XML roundtrip; shutdown. Synthetic host only; RDCMan Main and connection code were not executed.");

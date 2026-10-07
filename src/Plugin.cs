@@ -20,6 +20,8 @@ namespace RdcManTheme {
   IntPtr dialogHook;
   HookProc dialogCallback;
   bool preparingDialog;
+  readonly HashSet<Form> confirmingDialogs=new HashSet<Form>();
+  [DllImport("user32.dll")] static extern IntPtr SendMessage(IntPtr window,int message,IntPtr wParam,IntPtr lParam);
   readonly ConditionalWeakTable<Form,OpeningDialog> openingDialogs=new ConditionalWeakTable<Form,OpeningDialog>();
   sealed class OpeningDialog {public double Opacity;public bool Revealed;}
   [StructLayout(LayoutKind.Sequential)] struct CWPSTRUCT {public IntPtr LParam,WParam;public uint Message;public IntPtr Window;}
@@ -77,6 +79,15 @@ namespace RdcManTheme {
    if(code>=0 && !stopped && !preparingDialog) {
     try {
      var message=Marshal.PtrToStructure<CWPSTRUCT>(data);
+     if(message.Message==0x111 && message.LParam!=IntPtr.Zero && ((message.WParam.ToInt64()>>16)&0xffff)==0) {
+      var dialog=Control.FromHandle(message.Window) as Form;
+      if(dialog!=null && Theme.DarkEnabled && !confirmingDialogs.Contains(dialog)) {
+       var type=dialog.GetType();System.Reflection.FieldInfo accept=null;
+       while(type!=null && accept==null){accept=type.GetField("_acceptButton",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.DeclaredOnly);type=type.BaseType;}
+       var button=accept==null?null:accept.GetValue(dialog) as Control;
+       if(button!=null && button.IsHandleCreated && button.Handle==message.LParam)BatchConfirmation(dialog);
+      }
+     }
      bool showing=message.Message==0x18 && message.WParam!=IntPtr.Zero;
      if(message.Message==0x46 && message.LParam!=IntPtr.Zero)showing=(Marshal.PtrToStructure<WINDOWPOS>(message.LParam).Flags&0x40)!=0;
      var form=showing?Control.FromHandle(message.Window) as Form:null;
@@ -86,6 +97,29 @@ namespace RdcManTheme {
     catch(Exception ex){System.Diagnostics.Trace.WriteLine("RDCMan theme dialog hook: "+ex);}
    }
    return CallNextHookEx(dialogHook,code,window,data);
+  }
+  void BatchConfirmation(Form dialog) {
+   double opacity=dialog.Opacity;
+   var windows=new List<Control>();
+   Action<Control> collect=null;collect=c=>{if(!(c is Form) && c.IsHandleCreated && c.Visible)windows.Add(c);foreach(Control child in c.Controls)collect(child);};collect(dialog);
+   confirmingDialogs.Add(dialog);
+   // Validation can switch/resize native tabs and paint synchronously even
+   // with child redraw disabled. Keep the closing dialog off the compositor
+   // until validation has returned; restore it if validation keeps it open.
+   dialog.Opacity=0;
+   foreach(var c in windows){Theme.SuspendPainting(c,true);SendMessage(c.Handle,0xB,IntPtr.Zero,IntPtr.Zero);}
+   var dispatcher=context==null?null:context.MainForm as Control;
+   try {
+    (dispatcher??dialog).BeginInvoke(new Action(()=>{
+     try {
+      foreach(var c in windows){Theme.SuspendPainting(c,false);if(!c.IsDisposed && c.IsHandleCreated)SendMessage(c.Handle,0xB,new IntPtr(1),IntPtr.Zero);}
+      if(!dialog.IsDisposed && dialog.Visible){Theme.Apply(dialog);RedrawWindow(dialog.Handle,IntPtr.Zero,IntPtr.Zero,0x585);}
+     }finally{if(!dialog.IsDisposed)dialog.Opacity=opacity;confirmingDialogs.Remove(dialog);}
+    }));
+   }catch{
+    foreach(var c in windows){Theme.SuspendPainting(c,false);if(!c.IsDisposed && c.IsHandleCreated)SendMessage(c.Handle,0xB,new IntPtr(1),IntPtr.Zero);}
+    if(!dialog.IsDisposed)dialog.Opacity=opacity;confirmingDialogs.Remove(dialog);throw;
+   }
   }
   void PrepareDialog(Form form) {
    // RDCMan builds and focuses its settings tabs in ShownCallback. Keep only
@@ -134,6 +168,21 @@ namespace RdcManTheme {
    foreach(var form in forms)Theme.Observe(form);
   }
   public bool PreFilterMessage(ref Message message) {
+   // WinForms Button.OnMouseUp can call OnClick without a native BN_CLICKED.
+   // Start the paint batch before dispatching mouse/keyboard confirmation.
+   if(!stopped && Theme.DarkEnabled && (message.Msg==0x202 || message.Msg==0x100 || message.Msg==0x101)) {
+    var control=Control.FromHandle(message.HWnd);
+    var dialog=control==null?null:control.FindForm();
+    if(dialog!=null && !confirmingDialogs.Contains(dialog)) {
+     var type=dialog.GetType();System.Reflection.FieldInfo field=null;
+     while(type!=null && field==null){field=type.GetField("_acceptButton",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.DeclaredOnly);type=type.BaseType;}
+     var accept=field==null?null:field.GetValue(dialog) as Control;
+     var key=(Keys)message.WParam.ToInt32();
+     bool mouse=message.Msg==0x202 && control==accept;
+     bool keyboard=(message.Msg==0x101 && key==Keys.Space && control==accept) || (message.Msg==0x100 && key==Keys.Enter && !(control is TextBoxBase && ((TextBoxBase)control).Multiline));
+     if(accept!=null && accept.Enabled && (mouse || keyboard))BatchConfirmation(dialog);
+    }
+   }
    if(!stopped && message.Msg==0xF){var c=Control.FromHandle(message.HWnd);if(c!=null && !(c is AxHost)){var form=c.FindForm();if(form!=null)Theme.Observe(form);}}
    return false;
   }
@@ -158,3 +207,7 @@ namespace RdcManTheme {
   public void OnDockServer(ServerBase server) {ObserveForms();}
  }
 }
+
+
+
+

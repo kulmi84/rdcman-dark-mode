@@ -20,7 +20,7 @@ namespace RdcManTheme {
   static bool Switching;
   static readonly List<WeakReference<Control>> Tracked=new List<WeakReference<Control>>();
   sealed class Marker {
-   public ChromeWindow Window; public bool Hooked,Applying,Applied,OwnCombo,OwnList;
+   public ChromeWindow Window; public bool Hooked,Applying,Applied,OwnCombo,OwnList,PaintingSuspended;
    public readonly Color Back,Fore; public readonly bool ExplicitBack,ExplicitFore;
    public FlatStyle Flat; public bool Visual; public Color ButtonBorder,Hover,Down;
    public TabDrawMode Tabs; public DrawMode Combo; public bool OwnerDraw;
@@ -58,6 +58,7 @@ namespace RdcManTheme {
    if(c.ContextMenuStrip!=null)CaptureTree(c.ContextMenuStrip);
   }
   public static void Observe(Control c) { if(Switching)return;Marker marker;if(!Excluded(c)&&(!Seen.TryGetValue(c,out marker)||!marker.Hooked))Apply(c); }
+  internal static void SuspendPainting(Control c,bool value){Marker marker;if(Seen.TryGetValue(c,out marker))marker.PaintingSuspended=value;}
   static void Restore(Control c,Marker marker) {
    if(!marker.Applied)return;marker.Applied=false;
    if(marker.ExplicitBack)c.BackColor=marker.Back;else c.ResetBackColor();
@@ -84,6 +85,9 @@ namespace RdcManTheme {
   [DllImport("user32.dll")] static extern int ReleaseDC(IntPtr hwnd,IntPtr dc);
   [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hwnd,out RECT rect);
   [StructLayout(LayoutKind.Sequential)] struct RECT { public int Left,Top,Right,Bottom; }
+  [StructLayout(LayoutKind.Sequential)] struct PAINTSTRUCT {public IntPtr DC;public int Erase;public RECT Rect;public int Restore,Update;[MarshalAs(UnmanagedType.ByValArray,SizeConst=32)] public byte[] Reserved;}
+  [DllImport("user32.dll")] static extern IntPtr BeginPaint(IntPtr hwnd,out PAINTSTRUCT paint);
+  [DllImport("user32.dll")] static extern bool EndPaint(IntPtr hwnd,ref PAINTSTRUCT paint);
   [StructLayout(LayoutKind.Sequential)] struct HDITEM { public uint mask; public int cxy; public IntPtr pszText,hbm; public int cchTextMax,fmt; public IntPtr lParam; public int iImage,iOrder; public uint type; public IntPtr pvFilter; public uint state; }
   [DllImport("user32.dll",EntryPoint="SendMessageW")] static extern IntPtr HeaderItem(IntPtr hwnd,int message,IntPtr index,ref HDITEM item);
 
@@ -304,6 +308,22 @@ namespace RdcManTheme {
    void Destroyed(object sender,EventArgs e) { ReleaseHandle(); }
    void Created(object sender,EventArgs e) { if(Handle==IntPtr.Zero && !Control.IsDisposed)AssignHandle(Control.Handle); }
    protected override void WndProc(ref Message m) {
+    // Native tab painting exposes a light background/bevel before the overlay.
+    // Own the entire tab surface from the first paint; child pages keep their
+    // normal WinForms painting and native tab input/selection is untouched.
+    if(DarkEnabled && !Control.IsDisposed && Control is TabControl) {
+     Marker state;bool paused=Seen.TryGetValue(Control,out state) && state.PaintingSuspended;
+     if(m.Msg==0x14){m.Result=new IntPtr(1);return;}
+     if(m.Msg==0x85){if(!paused)PaintWindowBorder();m.Result=IntPtr.Zero;return;}
+     if(m.Msg==0xF && !paused){
+      PAINTSTRUCT paint;var dc=BeginPaint(Handle,out paint);
+      try{if(dc!=IntPtr.Zero)using(var g=Graphics.FromHdc(dc)){g.Clear(Panel);Tabs(g);}}
+      finally{EndPaint(Handle,ref paint);}m.Result=IntPtr.Zero;return;
+     }
+     if((m.Msg==0x317 || m.Msg==0x318) && m.WParam!=IntPtr.Zero && !paused){
+      using(var g=Graphics.FromHdc(m.WParam)){g.Clear(Panel);Tabs(g);}m.Result=IntPtr.Zero;return;
+     }
+    }
     // Paint simple EDIT frames directly, without first exposing the native frame.
     // Multiline scrolling fields retain native nonclient scrollbar processing.
     var text=Control as TextBox;
@@ -312,6 +332,7 @@ namespace RdcManTheme {
     }
     base.WndProc(ref m);
     if(Control.IsDisposed || !DarkEnabled)return;
+    Marker marker;if(Seen.TryGetValue(Control,out marker) && marker.PaintingSuspended)return;
     if(m.Msg==0xF && Control is TabControl) using(var g=Graphics.FromHwnd(Handle)) Tabs(g);
     if((m.Msg==0x317 || m.Msg==0x318) && m.WParam!=IntPtr.Zero) using(var g=Graphics.FromHdc(m.WParam)) {
      if(Control is TabControl)Tabs(g);
